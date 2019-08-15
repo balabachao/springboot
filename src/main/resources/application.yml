@@ -14,6 +14,21 @@ spring:
     mode: html5
     servlet:
       content-type: text/html
+  redis:
+    host: 192.168.8.67
+    port: 6379
+    database: 14
+    timeout: 5s
+  kafka:
+    producer:
+      bootstrap-servers: 192.168.30.120:9092
+    consumer:
+      enable-auto-commit: true
+      group-id: guan
+      auto-offset-reset: latest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      bootstrap-servers: 192.168.30.120:9092
 
 
 

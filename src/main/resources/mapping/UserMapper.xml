@@ -28,6 +28,8 @@
          select * from goods
     </select>
 
-
+    <select id="getUser" resultType="Hashmap">
+        SELECT * FROM user where userName = #{userName} and passWord = #{passWord}
+    </select>
 
 </mapper>

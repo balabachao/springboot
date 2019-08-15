@@ -1,12 +1,12 @@
 package com.yanshen.service;
 
-import com.yanshen.entity.Goods;
 import com.yanshen.entity.User;
 import com.yanshen.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @BelongsProject: Spring-Boot
@@ -20,18 +20,26 @@ public class UserService {
     @Autowired
     private UserMapper userMapper;
 
-    public User Sel(int id){
+    public User Sel(int id) {
         return userMapper.Sel(id);
     }
-    public User login (User user){
+
+    public User login(User user) {
         return userMapper.login(user);
     }
-    public int register(User user){
+
+    public int register(User user) {
         return userMapper.register(user);
 
 
     }
-    public List getGoodsList(){
+
+    public Map<String, Object> getUser(User user) {
+
+        return userMapper.getUser(user);
+    }
+
+    public List getGoodsList() {
         return userMapper.getGoodsList();
     }
 

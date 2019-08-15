@@ -1,8 +1,8 @@
 package com.yanshen.controller;
 
 import com.auth0.jwt.interfaces.Claim;
-import com.yanshen.common.MsgInfo;
-import com.yanshen.entity.Goods;
+import com.yanshen.Kafka.KafakaProducer;
+import com.yanshen.Redis.RedisService;
 import com.yanshen.entity.User;
 import com.yanshen.service.UserService;
 import com.yanshen.utils.JWTUtils;
@@ -10,17 +10,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -36,11 +31,15 @@ import java.util.Map;
 public class LoginController {
     @Autowired
     private UserService userService;
-    private final Logger logger =LoggerFactory.getLogger(LoginController.class);
+    @Autowired
+    private RedisService redisService;
+    @Autowired
+    private KafakaProducer kafakaProducer;
+    private final Logger logger = LoggerFactory.getLogger(LoginController.class);
 
     //跳转首页（登录页）
     @RequestMapping("/toIndex")
-    public String show(){
+    public String show() {
         return "index";
     }
 
@@ -49,34 +48,36 @@ public class LoginController {
     @RequestMapping("/loginUser")
     public String login(User user, HttpServletRequest request) throws Exception {
 
-        User u1 =userService.login(user);
+        User u1 = userService.login(user);
 
-        if (u1==null){
+        if (u1 == null) {
             return "用户名或密码错误";
-        }else{
-            request.getSession().setAttribute("session_user",user);//登录成功后将用户放入session中，用于拦截
-        String token=    JWTUtils.createToken(user.getUserName());
-            logger.info("生成token:  "+token);
+        } else {
+            request.getSession().setAttribute("session_user", user);//登录成功后将用户放入session中，用于拦截
+            String token = JWTUtils.createToken(user.getUserName());
+            logger.info("生成token:  " + token);
 
-            Map<String, Claim> map=   JWTUtils.verifyToken(token);
-
-         logger.info("解析token:  "+map.get("aud").asString());
+            Map<String, Claim> map = JWTUtils.verifyToken(token);
+            Map<String, Object> x = redisService.getUserInfo(user);
+            logger.info("解析redis内容" + x.toString());
+            logger.info("解析token:  " + map.get("aud").asString());
+            kafakaProducer.sendKafka("LOGIN_USERINFO", x.toString());
             return "登录成功";
         }
     }
 
     //跳转注册页
     @RequestMapping("/toRegister")
-    public String toRegister(){
+    public String toRegister() {
         return "register";
     }
 
     //注册操作
     @RequestMapping("/register")
-    public String register(User user,HttpServletRequest request){
+    public String register(User user, HttpServletRequest request) {
         int su = userService.register(user);
-        request.getSession().setAttribute("session_user",user);
-        if(su==0){
+        request.getSession().setAttribute("session_user", user);
+        if (su == 0) {
             System.out.println("----");
         }
         return "welcome";
@@ -84,7 +85,7 @@ public class LoginController {
 
     //测试未登陆拦截页面
     @RequestMapping("/welcome")
-    public String welcome(){
+    public String welcome() {
         return "welcome";
     }
 
